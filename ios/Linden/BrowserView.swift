@@ -8,6 +8,7 @@ final class BrowserModel {
     var privateAccessCode: String?
     var title = ""
     var host = ""
+    var path = ""
     var canGoBack = false
     var isLoading = false
     var progress: Double = 0
@@ -99,7 +100,8 @@ struct BrowserView: UIViewRepresentable {
                 },
                 webView.observe(\.url, options: [.initial, .new]) { [weak self] wv, _ in
                     let value = wv.url?.host ?? ""
-                    Task { @MainActor in self?.model.host = value }
+                    let path = wv.url?.path ?? ""
+                    Task { @MainActor in self?.model.host = value; self?.model.path = path }
                 },
                 webView.observe(\.canGoBack, options: [.initial, .new]) { [weak self] wv, _ in
                     let value = wv.canGoBack

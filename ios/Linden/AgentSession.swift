@@ -39,6 +39,8 @@ final class AgentSession {
 
     var isRunning: Bool { state == .thinking || state == .acting || pendingConfirm != nil }
 
+    let voice = VoiceController()
+
     let bridge: AgentBridge
     let backendURL: URL
     private let demoKey: String
@@ -50,6 +52,7 @@ final class AgentSession {
     private var backoff: TimeInterval = 1
     private var handshakeDone = false
     private var acceptsActions = false
+    private var spokenQuestion: String?
     // Separate from the WebView: this session never carries portal cookies.
     private let urlSession = URLSession(configuration: .ephemeral)
 
@@ -62,6 +65,7 @@ final class AgentSession {
     // MARK: Connection
 
     func disconnect() {
+        voice.stop()
         acceptsActions = false
         connectTask?.cancel()
         connectTask = nil
@@ -93,9 +97,10 @@ final class AgentSession {
                 }
                 if Task.isCancelled { return }
                 acceptsActions = false
+                voice.stop()
                 bridge.cancelPendingActions(); actionTask?.cancel()
                 pendingConfirm = nil
-                connectionNote = "Connection interrupted. Linden is reconnecting. Review the portal before repeating a change."
+                connectionNote = "Connection interrupted. Rumi is reconnecting. Review the portal before repeating a change."
             }
             state = .disconnected
             socket = nil
@@ -162,11 +167,36 @@ final class AgentSession {
         }
     }
 
+    func canRecordVoice() async -> Bool {
+        guard state != .disconnected, !isRunning,
+              let observation = try? await bridge.snapshotWithRetry(attempts: 2) else { return false }
+        return observation.title != "Sign in" && !observation.elements.contains(where: { $0.type == "password" })
+    }
+
+    func voiceRequest(path: String, body: Data, contentType: String) async throws -> Data {
+        guard let sessionID, let sessionToken, state != .disconnected else { throw VoiceRequestError(message: "Reconnect to use voice.") }
+        var request = URLRequest(url: backendURL.appending(path: path))
+        request.httpMethod = "POST"
+        request.timeoutInterval = 55
+        request.httpBody = body
+        request.setValue(contentType, forHTTPHeaderField: "Content-Type")
+        request.setValue(sessionID, forHTTPHeaderField: "X-Agent-Session")
+        request.setValue(sessionToken, forHTTPHeaderField: "X-Agent-Token")
+        let (data, response) = try await urlSession.data(for: request)
+        guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
+            let detail = (try? JSONSerialization.jsonObject(with: data) as? [String: String])?["detail"]
+            throw VoiceRequestError(message: detail ?? "Voice is unavailable. Please try again or type your request.")
+        }
+        return data
+    }
+
     // MARK: Patient actions
 
     func sendUserMessage(_ text: String) {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, state != .disconnected, pendingConfirm == nil else { return }
+        voice.working()
+        spokenQuestion = nil
         acceptsActions = true
         finishStreamingBubble()
         messages.append(ChatMessage(role: .patient, text: trimmed))
@@ -175,6 +205,7 @@ final class AgentSession {
     }
 
     func stop() {
+        voice.stop()
         acceptsActions = false
         bridge.cancelPendingActions(); actionTask?.cancel()
         actionTask = nil
@@ -185,6 +216,7 @@ final class AgentSession {
     func respondToConfirm(allowed: Bool, reason: String?) {
         guard let pending = pendingConfirm else { return }
         pendingConfirm = nil
+        voice.working()
         let trimmed = reason?.trimmingCharacters(in: .whitespacesAndNewlines)
         Task { await send(.confirmResponse(id: pending.id, allowed: allowed, reason: trimmed?.isEmpty == false ? trimmed : nil)) }
     }
@@ -234,6 +266,7 @@ final class AgentSession {
             }
         case .confirmRequest(let id, let summary):
             guard acceptsActions else { return }
+            voice.requireApproval()
             pendingConfirm = PendingConfirm(id: id, summary: summary)
             state = .waitingForUser
         case .agentMessage(let text, let delta):
@@ -246,6 +279,7 @@ final class AgentSession {
             } else {
                 finishStreamingBubble()
                 messages.append(ChatMessage(role: .assistant, text: text))
+                spokenQuestion = text
             }
         case .status(let wire, let newStep, let newMax):
             state = State(wire: wire)
@@ -253,13 +287,20 @@ final class AgentSession {
             maxSteps = newMax
             if state == .idle { pendingConfirm = nil }
             if !isRunning { finishStreamingBubble() }
+            if state == .waitingForUser, pendingConfirm == nil, let question = spokenQuestion {
+                spokenQuestion = nil
+                voice.reply(question)
+            }
         case .done(let summary):
+            spokenQuestion = nil
             acceptsActions = false
             pendingConfirm = nil
             finishStreamingBubble()
             messages.append(ChatMessage(role: .assistant, text: summary))
             state = .idle
+            voice.reply(summary)
         case .error(let text, let fatal):
+            voice.stop()
             finishStreamingBubble()
             messages.append(ChatMessage(role: .system, text: "Error: \(text)"))
             if fatal { acceptsActions = false; bridge.cancelPendingActions(); actionTask?.cancel(); pendingConfirm = nil; state = .idle }

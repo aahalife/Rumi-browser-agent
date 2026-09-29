@@ -36,9 +36,15 @@ struct ContentView: View {
             ConnectionSettingsView(companion: companion)
         }
         .sheet(item: Binding(get: { companion.session?.pendingConfirm }, set: { _ in })) { pending in
-            ConfirmSheet(summary: pending.summary) { allowed, reason in
+            ConfirmSheet(summary: pending.summary, stop: { companion.session?.stop() }) { allowed, reason in
                 companion.session?.respondToConfirm(allowed: allowed, reason: reason)
             }
+        }
+        .onChange(of: selection) { _, selected in
+            if selected != 1 { companion.session?.voice.stop() }
+        }
+        .onChange(of: showsSettings) { _, presented in
+            if presented { companion.session?.voice.stop() }
         }
         .onChange(of: companion.session?.pendingConfirm?.id) { _, id in
             if id != nil { selection = 1 }
@@ -49,7 +55,7 @@ struct ContentView: View {
         HStack {
             HStack(spacing: 5) {
                 Image(systemName: "leaf.fill").font(.title3).rotationEffect(.degrees(-25))
-                Text("linden").font(.system(.title2, design: .rounded, weight: .semibold)).tracking(-1)
+                Text("rumi").font(.system(.title2, design: .rounded, weight: .semibold)).tracking(-1)
             }.foregroundStyle(Color.riverDeep)
             Spacer()
             if companion.session?.isRunning == true {
@@ -94,7 +100,7 @@ struct ContentView: View {
         VStack(spacing: 22) {
             Image(systemName: "network.badge.shield.half.filled").font(.system(size: 50, weight: .ultraLight)).foregroundStyle(Color.river)
             Text("Your portal,\nwith a helping hand.").font(.system(.largeTitle, design: .serif)).multilineTextAlignment(.center)
-            Text("Enter your private access code to sign in to CarePortal and watch Linden take care of the little things.")
+            Text("Enter your private access code to sign in to AmalgamRx Hospitals and watch Rumi take care of the little things.")
                 .foregroundStyle(Color.inkSoft).multilineTextAlignment(.center)
             Button("Enter private demo") { showsSettings = true }
                 .buttonStyle(.borderedProminent).controlSize(.large).accessibilityIdentifier("setup.connect")
@@ -111,7 +117,7 @@ struct ContentView: View {
                 if let messages = companion.session?.messages, !messages.isEmpty {
                     ForEach(messages) { message in
                         VStack(alignment: .leading, spacing: 8) {
-                            Label(message.role == .patient ? "You" : message.role == .assistant ? "Linden" : "Connection", systemImage: message.role == .patient ? "person" : "sparkles")
+                            Label(message.role == .patient ? "You" : message.role == .assistant ? "Rumi" : "Connection", systemImage: message.role == .patient ? "person" : "sparkles")
                                 .font(.caption.weight(.semibold)).foregroundStyle(Color.river)
                             Text(message.text).font(.subheadline).textSelection(.enabled)
                         }.padding(20).frame(maxWidth: .infinity, alignment: .leading).frostedCard()
@@ -120,7 +126,7 @@ struct ContentView: View {
                     VStack(spacing: 16) {
                         Image(systemName: "checklist").font(.system(size: 38, weight: .light)).foregroundStyle(Color.river)
                         Text("A fresh start").font(.title3)
-                        Text("Your requests and Linden’s replies will appear here as you use your portal.")
+                        Text("Your requests and Rumi’s replies will appear here as you use your portal.")
                             .font(.subheadline).foregroundStyle(Color.inkSoft).multilineTextAlignment(.center)
                         Button("Open companion", action: openPortal).buttonStyle(.bordered)
                     }.padding(30).frame(maxWidth: .infinity).frostedCard()

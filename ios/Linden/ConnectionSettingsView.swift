@@ -13,7 +13,7 @@ struct ConnectionSettingsView: View {
         NavigationStack {
             Form {
                 Section {
-                    Label("Your private Linden demo", systemImage: "leaf").font(.headline)
+                    Label("Your private Rumi demo", systemImage: "leaf").font(.headline)
                     Text("Hosted on Rork for your trusted group. These fictional records are shared with other testers, not connected to a real health system.")
                         .font(.subheadline).foregroundStyle(.secondary)
                 }
@@ -64,6 +64,12 @@ struct ConnectionSettingsView: View {
                     }
                     if let notice { Text(notice).font(.caption) }
                     if let storageNotice = DeviceSignIn.shared.storageNotice { Text(storageNotice).font(.caption).foregroundStyle(Color.alert) }
+                }
+                Section("Voice privacy") {
+                    Text("Voice is optional. Short microphone recordings are sent to ElevenLabs Scribe v2; Rumi’s replies are read by ElevenLabs v4. The provider’s retention policies apply. Rumi deletes temporary recordings after transcription and does not save audio on the server. Use fictional information only; never speak passwords or access codes.")
+                        .font(.caption).foregroundStyle(.secondary)
+                    Text("Listening pauses during speech, browser work, and approvals. Stop cancels both voice and the assistant; it cannot undo a change already submitted. Voice stops when you leave the companion, background the app, or lose the connection.")
+                        .font(.caption).foregroundStyle(.secondary)
                 }
                 Section("Fictional patient sign-in") {
                     Text("Patient: demo\nPassword: demo123").font(.system(.subheadline, design: .monospaced))

@@ -1,2 +1,46 @@
-/* Preserve the established portal stylesheet; add utilities without resetting its controls. */
 @tailwind utilities;
+
+/* Hospital portal tokens; native Rumi keeps its own companion palette. */
+:root {
+  --river: #00845f;
+  --river-deep: #235f98;
+  --ink: #253746;
+  --ink-soft: #5d7284;
+  --mist: #f0f4fa;
+  --paper: #fff;
+  --shallows: #e8f3fb;
+  --line: #d8e3ee;
+  --r-hero: 18px;
+  --r-surface: 16px;
+  --r-control: 8px;
+}
+html, body {
+  background: radial-gradient(ellipse at 90% 12%, #d9eefa 0, transparent 50%), linear-gradient(165deg, #eff8ff, #e9f0fa 48%, #f5f5fa 80%);
+  background-attachment: fixed;
+}
+.topbar {
+  @apply gap-3 px-4 py-4 shadow-md;
+  background: linear-gradient(115deg, #2868a5, #397dbb);
+  min-height: 88px;
+}
+.topbar > .icon-btn { @apply rounded-lg bg-white/15; }
+.topbar .brand-line { @apply text-xl font-bold tracking-tight text-white opacity-100; }
+.topbar .brand-title { @apply text-xs font-normal uppercase tracking-[0.22em] text-white/90; }
+.topbar .avatar { @apply h-11 w-11 border-2 border-solid border-white/80 bg-[#ede4f4] text-[#77548a]; }
+.page { @apply max-w-[680px] px-4 pb-8 pt-6 sm:px-6; }
+.page-title { @apply text-[#23659b]; }
+.page-title.greeting { @apply text-center text-[30px] sm:text-4xl; }
+.page-title.greeting + .page-date { @apply mb-6 mt-2 text-center text-sm text-[#5b7b94]; }
+.btn-primary { @apply bg-[#00845f] border-[#00845f] text-white; }
+.btn-secondary { @apply border-[#5b859c] text-[#355c75]; }
+.card, .hero { @apply shadow-sm; }
+.footer { @apply mt-5 bg-white/60; }
+.drawer { @apply bg-white; }
+.login-app .page { @apply max-w-[480px]; }
+.login-brand .mark { @apply bg-[#e5eff9] text-[#306b9f]; }
+.login-brand .brand-title { @apply text-2xl text-[#23659b]; }
+.login-brand .brand-line { @apply text-[#637e94]; }
+.login-app .page-title { @apply text-center; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

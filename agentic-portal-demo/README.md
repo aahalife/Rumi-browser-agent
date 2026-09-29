@@ -1,6 +1,12 @@
 # Agentic Patient Portal Demo
 
-## Linden Rork migration status (2026-09-29)
+## Rumi / AmalgamRx Hospitals update (2026-09-29)
+
+See [the Rumi implementation and demo guide](../RUMI-DEMO-GUIDE.md) for current architecture, browser tools and safeguards, the redesigned hospital portal, ElevenLabs v4 voice, and a step-by-step walkthrough. The active app is displayed as Rumi; internal Linden identifiers remain for compatibility. Voice is turn-based native STT → the existing Sonnet browser agent → v4 TTS, not an independent ElevenLabs agent. Billing and Video Visits are explicitly labeled fictional demonstrations, without payments or clinician calls.
+
+Current update evidence: hosted web and iOS simulator builds passed; 46 backend tests and 13 native logic/setup tests passed. Live hosted v4 speech and Scribe v2 transcription returned 200, and unauthenticated voice returned 401. Hosted phone/wide layout checks plus billing/video interactions passed without page errors. An isolated record, portal session, and saved-device restoration were verified across an actual backend redeployment. All 14 hosted agent scenarios now have passing saved-outcome evidence across this update's runs, including separate successful rechecks of annual scheduling and moving a visit after pre-task hosting 503s. This is not a single uninterrupted clean suite run. Full connected native and real-device voice acceptance remain unverified.
+
+## Hosted migration status (prior acceptance evidence)
 
 The original Python implementation below remains the behavioral reference. The active iPhone app is `../ios/Linden`, not this directory's archived iOS app.
 
@@ -21,9 +27,9 @@ The iPhone app now has private-code setup instead of a server-address field, sep
 
 Live hosted agent evidence: next appointment returned the correct provider/date/time without appointment changes; afternoon booking with Dr. Rao required approval and persisted one new visit; denied cancellation and Stop preserved appointments; a real screenshot was processed by the vision model. Run `python3 -m harness.hosted_agent` or `python3 -m harness.hosted_safety` from `backend` with the access code in the environment. Hosted harnesses use the active native JavaScript bridge. The original Python harness remains unchanged.
 
-Additional hosted acceptance passes: refill to Northside Drugs, ignoring the injected appointment note, signed-out/no-token prompting without writes, and medical-advice refusal without writes. `python3 -m harness.hosted_eval` implements all 14 tasks and checks persisted outcomes, but the complete suite is not yet passing: setup/handshake 503 responses interrupted several runs, followed by the configured isolated-test-creation rate limit (20 per 10 minutes). Setup-only 503 retries are bounded and explicitly reported; patient mutations are never retried automatically. Leave rate limits enabled and resume after the window. Do not treat transport-limited scenarios as passed.
+Additional hosted acceptance passes: refill to Northside Drugs, ignoring the injected appointment note, signed-out/no-token prompting without writes, and medical-advice refusal without writes. `python3 -m harness.hosted_eval` implements all 14 tasks and checks persisted outcomes, and all 14 tasks now have passing hosted saved-outcome evidence across multiple runs. Earlier setup/handshake 503 responses interrupted runs, followed by the configured isolated-test-creation rate limit (20 per 10 minutes). Setup-only 503 retries are bounded and explicitly reported; patient mutations are never retried automatically. Leave rate limits enabled and resume after the window. Do not treat transport-limited scenarios as passed.
 
-**Not complete:** the full 14-scenario hosted acceptance suite, hosted redeployment persistence proof, native connected login/restoration/approved action/denied action/Stop tests, and compact/wide visual verification. Native logic and setup UI results are not connected end-to-end evidence. Previous Python evaluation results do not validate the new hosted implementation.
+**Not complete:** native connected login/restoration/approved action/denied action/Stop tests, and native compact/wide visual verification. Hosted web phone/wide visuals now pass. Native logic and setup UI results are not connected end-to-end evidence. Previous Python evaluation results do not validate the new hosted implementation.
 
 The following instructions describe the original Python reference deployment.
 

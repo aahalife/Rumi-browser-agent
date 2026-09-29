@@ -30,7 +30,7 @@ struct PortalWorkspaceView: View {
                     Image(systemName: "chevron.left").frame(width: 44, height: 44)
                 }.disabled(!browser.canGoBack).accessibilityLabel("Back").accessibilityIdentifier("browser.back")
                 VStack(alignment: .leading, spacing: 3) {
-                    Label("CarePortal · Demo", systemImage: "lock.fill").font(.caption.weight(.semibold))
+                    Label("AmalgamRx Hospitals · Demo", systemImage: "lock.fill").font(.caption.weight(.semibold))
                     Text(portalURL.host ?? "Patient portal").font(.system(size: 10)).foregroundStyle(Color.inkSoft).lineLimit(1)
                 }
                 Spacer()

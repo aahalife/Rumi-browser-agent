@@ -30,6 +30,7 @@ struct ChatView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            RumiVoiceView(session: session, canStart: !signedOut && !browser.title.isEmpty && browser.path.hasPrefix("/portal/") && !browser.path.contains("/login") && !browser.path.contains("/forgot") && !browser.path.contains("/api/"))
             StatusChip(session: session)
                 .padding(.horizontal, 16)
                 .padding(.top, 2)
@@ -123,7 +124,7 @@ struct ChatView: View {
 
     private var composer: some View {
         HStack(alignment: .bottom, spacing: 10) {
-            TextField("Ask Linden anything about your portal", text: $draft, axis: .vertical)
+            TextField("Ask Rumi anything about your portal", text: $draft, axis: .vertical)
                 .lineLimit(1...4)
                 .font(.body)
                 .foregroundStyle(Color.ink)
@@ -290,8 +291,8 @@ private struct StatusChip: View {
     private var statusText: String {
         switch session.state {
         case .disconnected: return "Reconnecting to the assistant"
-        case .idle: return "Linden is ready to help"
-        case .thinking: return "Linden is thinking"
+        case .idle: return "Rumi is ready to help"
+        case .thinking: return "Rumi is thinking"
         case .acting: return "Assistant is acting (step \(session.step) of \(session.maxSteps))"
         case .waitingForUser: return "Waiting for you"
         }

@@ -4,6 +4,7 @@ import SwiftUI
 // the words say exactly what will happen.
 struct ConfirmSheet: View {
     let summary: String
+    let stop: () -> Void
     let respond: (_ allowed: Bool, _ reason: String?) -> Void
 
     @State private var declining: Bool = false
@@ -31,10 +32,19 @@ struct ConfirmSheet: View {
                 .padding(.top, 14)
 
             VStack(alignment: .leading, spacing: 14) {
-                Text("Before I continue")
-                    .font(.title3.weight(.semibold))
-                    .foregroundStyle(Color.ink)
-                    .padding(.top, 4)
+                HStack {
+                    Text("Before I continue")
+                        .font(.title3.weight(.semibold))
+                        .foregroundStyle(Color.ink)
+                    Spacer()
+                    Button(action: stop) {
+                        Label("Stop", systemImage: "stop.fill")
+                            .font(.caption.weight(.semibold))
+                            .frame(minWidth: 44, minHeight: 44)
+                    }
+                    .foregroundStyle(Color.alert)
+                    .accessibilityIdentifier("confirm.stop")
+                }
 
                 Text(actionLine)
                     .font(.headline)

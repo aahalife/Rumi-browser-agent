@@ -2,7 +2,7 @@
   "$schema": "https://rork.com/schema/rork.json",
   "apps": [
     {
-      "name": "Linden",
+      "name": "Rumi",
       "path": "ios",
       "framework": "swift"
     },
@@ -12,7 +12,7 @@
       "framework": "cloudflare"
     },
     {
-      "name": "Linden Portal",
+      "name": "AmalgamRx Hospitals",
       "path": "web-linden-portal",
       "framework": "web"
     }

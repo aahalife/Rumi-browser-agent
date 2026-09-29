@@ -23,7 +23,7 @@ function Private({ children }: { children: ReactNode }) {
   return <RequireAuth>{children}</RequireAuth>
 }
 
-export function App() {
+export function App({ home, billing, videoVisits }: { home?: ReactNode; billing?: ReactNode; videoVisits?: ReactNode } = {}) {
   return (
     <BrowserRouter basename="/portal">
       <AuthProvider>
@@ -31,7 +31,7 @@ export function App() {
           <Route path="/" element={<Navigate to="/home" replace />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/forgot" element={<ForgotPage />} />
-          <Route path="/home" element={<Private><HomePage /></Private>} />
+          <Route path="/home" element={<Private>{home ?? <HomePage />}</Private>} />
           <Route path="/visits" element={<Private><VisitsPage /></Private>} />
           <Route path="/visits/:id" element={<Private><VisitDetailPage /></Private>} />
           <Route path="/visits/:id/cancel" element={<Private><CancelPage /></Private>} />
@@ -46,6 +46,8 @@ export function App() {
           <Route path="/medications/:id/refill" element={<Private><RefillPage /></Private>} />
           <Route path="/health-summary" element={<Private><HealthSummaryPage /></Private>} />
           <Route path="/care-team" element={<Private><CareTeamPage /></Private>} />
+          {billing && <Route path="/billing" element={<Private>{billing}</Private>} />}
+          {videoVisits && <Route path="/video-visits" element={<Private>{videoVisits}</Private>} />}
           <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>
       </AuthProvider>

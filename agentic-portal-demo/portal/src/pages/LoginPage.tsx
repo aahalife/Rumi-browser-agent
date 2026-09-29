@@ -17,8 +17,8 @@ export function LoginBrand() {
       <div className="mark" aria-hidden="true">
         <LeafIcon />
       </div>
-      <span className="brand-line">Riverside Health</span>
-      <span className="brand-title">CarePortal</span>
+      <span className="brand-line">Your care. All together.</span>
+      <span className="brand-title">AmalgamRx Hospitals</span>
     </div>
   )
 }

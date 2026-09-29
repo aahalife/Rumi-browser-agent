@@ -81,5 +81,28 @@ struct LindenTests {
         #expect(!session.isRunning)
     }
 
+    @Test func voiceStartsOffAndCannotActWithoutExplicitEnable() {
+        let voice = VoiceController()
+        voice.working()
+        voice.requireApproval()
+        voice.reply("No automatic playback")
+        #expect(!voice.isEnabled)
+        #expect(voice.phase == .off)
+        #expect(voice.level == 0)
+        voice.stop()
+        #expect(voice.phase == .off)
+    }
+
+    @Test func disconnectedVoiceRequestFailsWithoutNetwork() async throws {
+        let url = HostedEndpoints.backend
+        let session = AgentSession(backendURL: url, demoKey: "test-only", bridge: AgentBridge(backendOrigin: HostedEndpoints.portal, browser: BrowserModel()))
+        do {
+            _ = try await session.voiceRequest(path: "voice/speech", body: Data(), contentType: "application/json")
+            Issue.record("Voice must reject a disconnected session")
+        } catch let error as VoiceRequestError {
+            #expect(error.message == "Reconnect to use voice.")
+        }
+    }
+
     @Test func bridgeResourceIsBundled() { #expect(AgentBridge.script.contains("snapshot")) }
 }

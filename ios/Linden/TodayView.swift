@@ -14,7 +14,7 @@ struct TodayView: View {
                 HStack {
                     Text("Let’s lighten your day").font(.system(.title3, design: .serif))
                     Spacer()
-                    Text("WITH LINDEN").font(.system(size: 9, weight: .semibold)).tracking(1.3).foregroundStyle(Color.inkSoft)
+                    Text("WITH RUMI").font(.system(size: 9, weight: .semibold)).tracking(1.3).foregroundStyle(Color.inkSoft)
                 }
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 145), spacing: 12)], spacing: 12) {
                     taskCard("Appointments", subtitle: "Make room for care", symbol: "calendar", color: .mint, task: "When is my next appointment?")
@@ -35,7 +35,7 @@ struct TodayView: View {
                 }.buttonStyle(.plain)
                 HStack(spacing: 8) {
                     Image(systemName: "hand.raised").font(.caption)
-                    Text("You’re always in control. Linden asks before making changes.").font(.caption)
+                    Text("You’re always in control. Rumi asks before making changes.").font(.caption)
                 }.foregroundStyle(Color.inkSoft).padding(.horizontal, 5)
                 Text("DEMO EXPERIENCE · NOT MEDICAL ADVICE").font(.system(size: 9, weight: .medium)).tracking(1.4)
                     .foregroundStyle(Color.inkSoft).frame(maxWidth: .infinity).padding(.vertical, 7)
@@ -106,7 +106,7 @@ struct TodayView: View {
                     Text("Your patient portal").font(.subheadline.weight(.semibold))
                     HStack(spacing: 5) {
                         Circle().fill(isConfigured ? Color.mint : Color.amber).frame(width: 5, height: 5)
-                        Text(isConfigured ? "CarePortal demo · Open to sign in" : "Connect once. Let us help from there.")
+                        Text(isConfigured ? "AmalgamRx Hospitals demo · Open to sign in" : "Connect once. Let us help from there.")
                             .font(.caption).foregroundStyle(Color.inkSoft)
                     }
                 }

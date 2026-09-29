@@ -20,7 +20,7 @@ export class LindenPortal extends DurableObject<Env> {
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
-    if (url.pathname === '/healthz' && request.method === 'GET') return json({ ok: true, service: 'linden-portal', version: 1 });
+    if (url.pathname === '/healthz' && request.method === 'GET') return json({ ok: true, service: 'rumi-portal', version: 2 });
     if (url.pathname.startsWith('/portal/api/') || ['/demo/access', '/demo/native-access', '/demo/status', '/demo/test'].includes(url.pathname)) {
       const wrapped = new Request(request.url, request);
       // Never let callers choose the actor or access an internal administration route.
@@ -32,7 +32,7 @@ export default {
       }
       return env.DO.fetch(wrapped);
     }
-    if (url.pathname === '/agent/sessions' && request.method === 'POST') {
+    if (['/agent/sessions', '/voice/speech', '/voice/transcribe'].includes(url.pathname) && request.method === 'POST') {
       const wrapped = new Request(request.url, request);
       wrapped.headers.set('X-Rork-DO-Class', 'LindenAgentGate');
       wrapped.headers.set('X-Rork-DO-Id', 'agent-gate-v1');

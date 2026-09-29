@@ -1,5 +1,5 @@
-import { useState, type ReactNode } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { useEffect, useState, type ReactNode } from 'react'
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { CloseIcon, MenuIcon } from './Icons'
 
@@ -12,6 +12,8 @@ const MENU: [string, string][] = [
   ['/health-summary', 'Health Summary'],
   ['/care-team', 'Care Team'],
   ['/schedule', 'Schedule an Appointment'],
+  ['/billing', 'Billing'],
+  ['/video-visits', 'Video Visits'],
 ]
 
 interface Props {
@@ -22,7 +24,9 @@ interface Props {
 }
 
 export function Layout({ title, subtitle, greeting, children }: Props) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState<boolean>(false)
+  const { pathname } = useLocation()
+  useEffect(() => { window.scrollTo(0, 0) }, [pathname])
   const { patient, logout } = useAuth()
   const navigate = useNavigate()
   const initials = patient ? `${patient.first_name[0] ?? ''}${patient.last_name[0] ?? ''}` : ''
@@ -45,9 +49,9 @@ export function Layout({ title, subtitle, greeting, children }: Props) {
         >
           <MenuIcon />
         </button>
-        <div className="brand">
-          <span className="brand-line">Riverside Health</span>
-          <span className="brand-title">CarePortal</span>
+        <div className="brand" aria-label="AmalgamRx Hospitals">
+          <span className="brand-line">AmalgamRx</span>
+          <span className="brand-title">Hospitals</span>
         </div>
         {initials && (
           <span className="avatar" aria-label={`Signed in as ${patient?.first_name} ${patient?.last_name}`}>
@@ -60,9 +64,9 @@ export function Layout({ title, subtitle, greeting, children }: Props) {
         <div className="drawer-backdrop" onClick={() => setOpen(false)}>
           <nav className="drawer" aria-label="Main menu" onClick={(e) => e.stopPropagation()}>
             <div className="drawer-head">
-              <div className="brand">
-                <span className="brand-line">Riverside Health</span>
-                <span className="brand-title">CarePortal</span>
+              <div className="brand" aria-label="AmalgamRx Hospitals">
+                <span className="brand-line">AmalgamRx</span>
+                <span className="brand-title">Hospitals</span>
               </div>
               <button type="button" className="icon-btn" aria-label="Close menu" onClick={() => setOpen(false)}>
                 <CloseIcon />
@@ -88,6 +92,7 @@ export function Layout({ title, subtitle, greeting, children }: Props) {
         {children}
       </main>
 
+      <p className="px-4 text-center text-xs text-slate-500">Fictional patient demo · Not connected to a healthcare provider</p>
       <footer className="footer">
         <Link to="/home">Home</Link>
         <Link to="/visits">Visits</Link>

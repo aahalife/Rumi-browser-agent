@@ -2,10 +2,12 @@ import { QueryClient, QueryClientProvider, useMutation, useQuery, useQueryClient
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Leaf, LockKeyhole } from 'lucide-react';
+import { HeartPulse, LockKeyhole } from 'lucide-react';
 import { App as Portal } from '../../agentic-portal-demo/portal/src/App';
 import '../../agentic-portal-demo/portal/src/styles.css';
 import './index.css';
+import { PortalHome } from './pages/PortalHome';
+import { BillingPage, VideoVisitsPage } from './pages/PortalExtras';
 
 const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
 const accessSchema = z.object({ code: z.string().min(16, 'Use the private access code supplied by your host.').max(256) });
@@ -38,10 +40,10 @@ function PrivatePortal() {
       queryClient.setQueryData(['private-demo-access'], true);
     },
   });
-  if (access.data) return <Portal />;
+  if (access.data) return <Portal home={<PortalHome />} billing={<BillingPage />} videoVisits={<VideoVisitsPage />} />;
   return <main className="app login-app">
     <div className="page">
-      <div className="login-brand"><div className="mark"><Leaf aria-hidden="true" /></div><span className="brand-line">A little help with your care</span><span className="brand-title">Linden Portal</span></div>
+      <div className="login-brand"><div className="mark"><HeartPulse aria-hidden="true" /></div><span className="brand-line">Your care. All together.</span><span className="brand-title">AmalgamRx Hospitals</span></div>
       <h1 className="page-title">Your private demo</h1>
       <form className="card form" onSubmit={form.handleSubmit(values => unlock.mutate(values))}>
         <LockKeyhole className="mb-2 h-7 w-7" aria-hidden="true" />

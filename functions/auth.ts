@@ -132,7 +132,7 @@ export class PortalAuth {
     }
     if (action === 'device-token') {
       if (!patient) throw new HTTPError(401, 'Not signed in');
-      const label = stringField(body, 'label', 64, 'Linden device');
+      const label = stringField(body, 'label', 64, 'Rumi device');
       const device = await this.make('device', patient, generation, 90 * day);
       return json({ id: device.hash.slice(0, 16), token: device.raw, expires_at: new Date(device.expires).toISOString(), label });
     }
