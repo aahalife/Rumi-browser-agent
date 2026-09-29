@@ -1,0 +1,19 @@
+node_modules
+.env
+.expo
+.rork
+.venv/
+__pycache__/
+.pytest_cache/
+*.egg-info/
+**/data/
+**/tests/.data/
+**/dist/
+*.tsbuildinfo
+*.jsonl
+*.log
+.DS_Store
+
+# Cloudflare Functions
+functions/node_modules
+!functions/package.json

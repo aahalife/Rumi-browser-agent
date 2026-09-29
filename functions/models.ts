@@ -1,0 +1,10 @@
+import type { Appointment, Patient, Provider, Location, Slot, Conversation, LabPanel, Medication, Pharmacy, HealthSummary, CheckinState } from '../agentic-portal-demo/portal/src/lib/types';
+export type { Provider, Location, Pharmacy, CheckinState };
+export type PatientRecord = Omit<Patient, 'unread_messages' | 'new_results'>;
+export type AppointmentRecord = Appointment & { patient_id: number; slot_id: number | null };
+export type SlotRecord = Slot & { status: 'open' | 'blocked' | 'booked' };
+export type ConversationRecord = Conversation & { patient_id: number; messages: NonNullable<Conversation['messages']> };
+export type PanelRecord = LabPanel & { patient_id: number; results: NonNullable<LabPanel['results']> };
+export type MedicationRecord = Medication & { patient_id: number };
+export type HealthRecord = HealthSummary & { id: number };
+export type CheckinRecord = CheckinState & { id: number };

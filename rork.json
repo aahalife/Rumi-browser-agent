@@ -1,0 +1,20 @@
+{
+  "$schema": "https://rork.com/schema/rork.json",
+  "apps": [
+    {
+      "name": "Linden",
+      "path": "ios",
+      "framework": "swift"
+    },
+    {
+      "name": "Functions",
+      "path": "functions",
+      "framework": "cloudflare"
+    },
+    {
+      "name": "Linden Portal",
+      "path": "web-linden-portal",
+      "framework": "web"
+    }
+  ]
+}

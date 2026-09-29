@@ -1,0 +1,12 @@
+{
+  "name": "rork-functions",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {},
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260929.1",
+    "@types/bun": "^1.4.2",
+    "typescript": "^7.0.2"
+  }
+}
