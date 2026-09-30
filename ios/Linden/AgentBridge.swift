@@ -39,6 +39,9 @@ final class AgentBridge {
 
     private var webView: WKWebView {
         get throws {
+            guard browser.loadError == nil else {
+                throw BridgeError.refused("The portal is unavailable. Use Try again and review the page before asking Rumi to continue.")
+            }
             guard let wv = browser.webView else { throw BridgeError.noWebView }
             guard let url = wv.url, PortalOrigin.allows(url, origin: backendOrigin) else {
                 throw BridgeError.refused("The assistant can only access this demo portal.")

@@ -167,5 +167,52 @@ struct LindenTests {
         #expect(attempts == 2)
     }
 
+    @Test func portal503KeepsBootstrapAvailableUntilSuccessfulPageLoad() {
+        let browser = BrowserModel()
+        browser.privateAccessCode = "test-invitation"
+        let home = HostedEndpoints.portal.appending(path: "portal/home")
+        let first = browser.request(for: home)
+        #expect(first.httpMethod == "POST")
+        #expect(first.url?.path == "/~api/demo/native-access")
+        #expect(browser.privateAccessCode == "test-invitation")
+        #expect(!browser.acceptResponse(status: 503))
+        #expect(browser.loadError?.contains("has not been rejected") == true)
+        browser.finishLoading(url: home)
+        #expect(browser.privateAccessCode == "test-invitation")
+        let retry = browser.request(for: home)
+        #expect(retry.value(forHTTPHeaderField: "X-Demo-Key") == "test-invitation")
+        browser.loadError = nil
+        #expect(browser.acceptResponse(status: 200))
+        browser.finishLoading(url: home)
+        #expect(browser.privateAccessCode == nil)
+        let reload = browser.request(for: home)
+        #expect(reload.httpMethod == "GET")
+        #expect(reload.httpBody == nil)
+        #expect(reload.value(forHTTPHeaderField: "X-Demo-Key") == nil)
+    }
+
+    @Test func portalAccessCodeNeverSentToOtherOrigins() throws {
+        let browser = BrowserModel()
+        browser.privateAccessCode = "test-invitation"
+        let url = try #require(URL(string: "https://other.example/portal/home"))
+        let request = browser.request(for: url)
+        #expect(request.httpMethod == "GET")
+        #expect(request.value(forHTTPHeaderField: "X-Demo-Key") == nil)
+        browser.finishLoading(url: url)
+        #expect(browser.privateAccessCode == "test-invitation")
+    }
+
+    @Test func assistantCannotObservePortalWhileHostingErrorIsVisible() async {
+        let browser = BrowserModel()
+        _ = browser.acceptResponse(status: 503)
+        let bridge = AgentBridge(backendOrigin: HostedEndpoints.portal, browser: browser)
+        do {
+            _ = try await bridge.snapshot()
+            Issue.record("An unavailable portal must not reach the assistant")
+        } catch let error as BridgeError {
+            #expect(error.errorDescription?.contains("portal is unavailable") == true)
+        } catch { Issue.record("Unexpected error type") }
+    }
+
     @Test func bridgeResourceIsBundled() { #expect(AgentBridge.script.contains("snapshot")) }
 }

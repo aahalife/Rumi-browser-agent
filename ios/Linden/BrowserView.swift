@@ -15,7 +15,42 @@ final class BrowserModel {
     weak var webView: WKWebView?
 
     func goBack() { webView?.goBack() }
-    func reload() { loadError = nil; webView?.reload() }
+    /// Reload a page with GET, or retry only the access bootstrap while it is pending.
+    func reload() {
+        let destination = loadError == nil ? webView?.url : nil
+        loadError = nil
+        let url = destination.flatMap { PortalOrigin.allows($0, origin: HostedEndpoints.portal) ? $0 : nil }
+            ?? HostedEndpoints.portal.appending(path: "portal/home")
+        webView?.load(request(for: url))
+    }
+
+    func request(for url: URL) -> URLRequest {
+        var request = URLRequest(url: url)
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        if let code = privateAccessCode, PortalOrigin.allowsNavigation(url, origin: HostedEndpoints.portal) {
+            request.url = HostedEndpoints.portal.appending(path: "~api/demo/native-access")
+            request.httpMethod = "POST"
+            request.setValue(code, forHTTPHeaderField: "X-Demo-Key")
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = Data("{}".utf8)
+        }
+        return request
+    }
+
+    func acceptResponse(status: Int) -> Bool {
+        guard status < 400 else {
+            loadError = status >= 500
+                ? "The demo hosting service is temporarily unavailable (\(status)). Your access code has not been rejected. Tap Try again shortly."
+                : "The portal could not open (\(status)). Try again, or reconnect in Connection & Privacy."
+            return false
+        }
+        return true
+    }
+
+    func finishLoading(url: URL?) {
+        guard loadError == nil, let url, PortalOrigin.allows(url, origin: HostedEndpoints.portal) else { return }
+        privateAccessCode = nil
+    }
 }
 
 struct BrowserView: UIViewRepresentable {
@@ -41,15 +76,7 @@ struct BrowserView: UIViewRepresentable {
         webView.scrollView.contentInsetAdjustmentBehavior = .never
         model.webView = webView
         context.coordinator.observe(webView)
-        var request = URLRequest(url: startURL)
-        if let code = model.privateAccessCode, startURL.host == HostedEndpoints.portal.host {
-            request = URLRequest(url: HostedEndpoints.portal.appending(path: "~api/demo/native-access"))
-            request.httpMethod = "POST"
-            request.setValue(code, forHTTPHeaderField: "X-Demo-Key")
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.httpBody = Data("{}".utf8)
-            model.privateAccessCode = nil
-        }
+        let request = model.request(for: startURL)
         #if DEBUG
         // UI tests pass -ForgetDevice to drop the saved device sign-in, -ResetWebData to start signed out.
         if CommandLine.arguments.contains("-ForgetDevice") { DeviceSignIn.shared.forgetLocally() }
@@ -82,6 +109,19 @@ struct BrowserView: UIViewRepresentable {
                 return
             }
             decisionHandler(.allow)
+        }
+
+        func webView(_ webView: WKWebView, decidePolicyFor response: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
+            if response.isForMainFrame, let http = response.response as? HTTPURLResponse,
+               !model.acceptResponse(status: http.statusCode) {
+                decisionHandler(.cancel)
+                return
+            }
+            decisionHandler(.allow)
+        }
+
+        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            model.finishLoading(url: webView.url)
         }
 
         func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) { model.loadError = nil }
