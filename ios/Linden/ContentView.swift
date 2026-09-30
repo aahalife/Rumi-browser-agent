@@ -33,7 +33,7 @@ struct ContentView: View {
         .tint(.river)
         .preferredColorScheme(.light)
         .sheet(isPresented: $showsSettings) {
-            ConnectionSettingsView(companion: companion)
+            ConnectionSettingsView(companion: companion, onConnected: { selection = 1 })
         }
         .sheet(item: Binding(get: { companion.session?.pendingConfirm }, set: { _ in })) { pending in
             ConfirmSheet(summary: pending.summary, stop: { companion.session?.stop() }) { allowed, reason in

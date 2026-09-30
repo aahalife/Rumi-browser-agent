@@ -32,17 +32,20 @@ final class CompanionModel {
         guard let url = Self.validatedURL(address), !key.isEmpty else {
             throw BridgeError.refused("Enter your private demo access code.")
         }
-        var request = URLRequest(url: url.appending(path: "demo/status"))
-        request.httpMethod = "GET"
-        request.timeoutInterval = 15
-        request.setValue(key, forHTTPHeaderField: "X-Demo-Key")
-        let (_, response) = try await URLSession(configuration: .ephemeral).data(for: request)
-        guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
-            throw BridgeError.refused("Couldn’t connect. Check your private access code and network, then try again.")
-        }
-        try KeychainStore.save(key, account: "demo-key:" + url.absoluteString)
+        let client = URLSession(configuration: .ephemeral)
+        defer { client.invalidateAndCancel() }
+        let acceptedKey = try await PrivateAccessConnection.validate(key: key, status: { code in
+            var request = URLRequest(url: url.appending(path: "demo/status"))
+            request.httpMethod = "GET"
+            request.timeoutInterval = 12
+            request.cachePolicy = .reloadIgnoringLocalCacheData
+            request.setValue(code, forHTTPHeaderField: "X-Demo-Key")
+            let (_, response) = try await client.data(for: request)
+            return (response as? HTTPURLResponse)?.statusCode ?? 0
+        })
+        try KeychainStore.save(acceptedKey, account: "demo-key:" + url.absoluteString)
         UserDefaults.standard.set(url.absoluteString, forKey: "linden.backend")
-        configure(url: url, key: key)
+        configure(url: url, key: acceptedKey)
     }
 
     func removeDemoAccess() async {

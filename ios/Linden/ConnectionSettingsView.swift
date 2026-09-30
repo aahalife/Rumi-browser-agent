@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ConnectionSettingsView: View {
     let companion: CompanionModel
+    var onConnected: () -> Void = {}
     @Environment(\.dismiss) private var dismiss
     @State private var key: String = ""
     @State private var isConnecting: Bool = false
@@ -21,6 +22,7 @@ struct ConnectionSettingsView: View {
                     SecureField("Private access code", text: $key)
                         .textInputAutocapitalization(.never).autocorrectionDisabled()
                         .accessibilityIdentifier("settings.key")
+                        .disabled(isConnecting)
                     Text("Enter the invitation code from your host. It stays in this phone’s Keychain, outside the assistant’s view.")
                         .font(.caption).foregroundStyle(.secondary)
                     if let error { Text(error).foregroundStyle(Color.alert).font(.subheadline).accessibilityIdentifier("settings.error") }
@@ -32,6 +34,7 @@ struct ConnectionSettingsView: View {
                             do {
                                 try await companion.connect(address: companion.savedAddress, key: key)
                                 key = ""
+                                onConnected()
                                 dismiss()
                             } catch {
                                 self.error = (error as? BridgeError)?.errorDescription ?? "Unable to connect securely. Check your access code and network connection."
@@ -42,7 +45,11 @@ struct ConnectionSettingsView: View {
                             Text(isConnecting ? "Checking access…" : "Connect securely")
                             if isConnecting { Spacer(); ProgressView() }
                         }
-                    }.disabled(isConnecting || key.isEmpty).accessibilityIdentifier("settings.connect")
+                    }.disabled(isConnecting || key.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty).accessibilityIdentifier("settings.connect")
+                }
+                Section("Then sign in to the portal") {
+                    Text("Username: demo\nPassword: demo123").font(.system(.subheadline, design: .monospaced))
+                    Text("Connect above, then enter these on the portal sign-in page to open the fictional patient profile. Don’t enter them in the assistant chat.").font(.caption).foregroundStyle(.secondary)
                 }
                 Section("Your sign-in, your control") {
                     Label("Passwords stay in the portal", systemImage: "lock.shield")
@@ -71,13 +78,9 @@ struct ConnectionSettingsView: View {
                     Text("Listening pauses during speech, browser work, and approvals. Stop cancels both voice and the assistant; it cannot undo a change already submitted. Voice stops when you leave the companion, background the app, or lose the connection.")
                         .font(.caption).foregroundStyle(.secondary)
                 }
-                Section("Fictional patient sign-in") {
-                    Text("Patient: demo\nPassword: demo123").font(.system(.subheadline, design: .monospaced))
-                    Text("Enter these in the portal browser, never in the assistant chat.").font(.caption).foregroundStyle(.secondary)
-                }
             }
             .navigationTitle("Connection & privacy").navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() }.disabled(isConnecting) } }
             .confirmationDialog("Remove access from this phone?", isPresented: $showsRemoveConfirmation, titleVisibility: .visible) {
                 Button("Remove demo access", role: .destructive) {
                     Task { await companion.removeDemoAccess(); dismiss() }
@@ -86,5 +89,6 @@ struct ConnectionSettingsView: View {
                 Text("This stops the assistant, removes saved access and sign-in, and clears this app’s portal data. Shared fictional records are not deleted.")
             }
         }.tint(.river)
+            .interactiveDismissDisabled(isConnecting)
     }
 }

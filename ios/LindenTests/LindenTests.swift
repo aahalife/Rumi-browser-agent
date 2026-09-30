@@ -104,5 +104,68 @@ struct LindenTests {
         }
     }
 
+    @Test func privateAccessRetriesTemporaryFailureAndTrimsPaste() async throws {
+        var attempts = 0
+        let code = try await PrivateAccessConnection.validate(key: "  test-invitation\n", status: { code in
+            #expect(code == "test-invitation")
+            attempts += 1
+            return attempts < 3 ? 503 : 200
+        }, pause: { _ in })
+        #expect(code == "test-invitation")
+        #expect(attempts == 3)
+    }
+
+    @Test func privateAccessDoesNotRetryRejectedCodesOrRateLimits() async {
+        for status in [403, 429] {
+            var attempts = 0
+            do {
+                _ = try await PrivateAccessConnection.validate(key: "test-invitation", status: { _ in
+                    attempts += 1
+                    return status
+                }, pause: { _ in Issue.record("Must not retry rejected access") })
+                Issue.record("Must reject access")
+            } catch let error as BridgeError {
+                #expect(error.errorDescription?.contains(status == 403 ? "wasn’t accepted" : "Too many") == true)
+            } catch { Issue.record("Unexpected error type") }
+            #expect(attempts == 1)
+        }
+    }
+
+    @Test func privateAccessStopsAfterThreeServerFailures() async {
+        var attempts = 0
+        do {
+            _ = try await PrivateAccessConnection.validate(key: "test-invitation", status: { _ in
+                attempts += 1
+                return 503
+            }, pause: { _ in })
+            Issue.record("Must report server unavailable")
+        } catch let error as BridgeError {
+            #expect(error.errorDescription?.contains("temporarily unavailable") == true)
+        } catch { Issue.record("Unexpected error type") }
+        #expect(attempts == 3)
+    }
+
+    @Test func privateAccessRejectsEmptyInputWithoutRequest() async {
+        do {
+            _ = try await PrivateAccessConnection.validate(key: " \n", status: { _ in
+                Issue.record("Empty codes must not reach the server")
+                return 200
+            })
+            Issue.record("Must reject empty input")
+        } catch let error as BridgeError {
+            #expect(error.errorDescription == "Enter your private demo access code.")
+        } catch { Issue.record("Unexpected error type") }
+    }
+
+    @Test func privateAccessRetriesNetworkInterruption() async throws {
+        var attempts = 0
+        _ = try await PrivateAccessConnection.validate(key: "test-invitation", status: { _ in
+            attempts += 1
+            if attempts == 1 { throw URLError(.networkConnectionLost) }
+            return 200
+        }, pause: { _ in })
+        #expect(attempts == 2)
+    }
+
     @Test func bridgeResourceIsBundled() { #expect(AgentBridge.script.contains("snapshot")) }
 }
